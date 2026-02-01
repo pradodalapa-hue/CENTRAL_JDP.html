@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>JDP CENTRAL COMMAND - SUPREME</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        :root {
+            --jdp-green: #00ff41;
+            --jdp-red: #ff003c;
+            --jdp-gold: #d4af37;
+            --jdp-dark: #050505;
+            --panel-bg: #111;
+        }
+
+        body {
+            background: var(--jdp-dark);
+            color: var(--jdp-green);
+            font-family: 'Consolas', monospace;
+            margin: 0; padding: 20px;
+        }
+
+        header {
+            border-bottom: 2px solid var(--jdp-green);
+            padding-bottom: 10px; margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        /* GRADE DE 6 QUADRADOS POR LINHA */
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+        }
+
+        .screen-card {
+            background: var(--panel-bg);
+            border: 1px solid #333;
+            padding: 10px;
+            position: relative;
+            transition: 0.3s;
+        }
+
+        .screen-card:hover { border-color: var(--jdp-green); }
+
+        .screen-id {
+            font-size: 1.2em; font-weight: bold;
+            margin-bottom: 10px; display: flex;
+            justify-content: space-between;
+        }
+
+        .status-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: var(--jdp-red); display: inline-block;
+        }
+
+        .status-online { background: var(--jdp-green); box-shadow: 0 0 8px var(--jdp-green); }
+
+        label { font-size: 10px; color: #888; text-transform: uppercase; }
+
+        input, textarea {
+            width: 100%; background: #000; border: 1px solid #222;
+            color: #fff; margin-bottom: 8px; padding: 5px;
+            font-size: 11px; box-sizing: border-box;
+        }
+
+        input:focus, textarea:focus { border-color: var(--jdp-green); outline: none; }
+
+        button {
+            width: 100%; background: var(--jdp-green); color: #000;
+            border: none; padding: 8px; font-weight: bold;
+            cursor: pointer; text-transform: uppercase;
+        }
+
+        button:hover { background: #fff; }
+
+        /* ACESSO SECRETO */
+        #master-lock {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999; display: flex;
+            justify-content: center; align-items: center;
+        }
+
+        #secret-trigger {
+            position: fixed; bottom: 0; right: 0; width: 30px; height: 30px; z-index: 10000;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- GATILHO INVISÍVEL PARA O SR. JOSÉ -->
+    <div id="secret-trigger" onclick="unlockMaster()"></div>
+
+    <!-- TELA DE BLOQUEIO INICIAL -->
+    <div id="master-lock">
+        <div style="text-align: center;">
+            <h1 style="color: #222;">SISTEMA OFFLINE</h1>
+            <p style="color: #111;">Aguardando autorização do Kernel...</p>
+        </div>
+    </div>
+
+    <header>
+        <div>
+            <span style="font-size: 20px;">JDP INDUSTRIAL - CENTRAL CONTROL v13.5</span><br>
+            <small>OPERADOR: SR. JOSÉ DIVINO PRADO DA LAPA</small>
+        </div>
+        <div id="global-stats">TELAS ATIVAS: <span id="active-count">0</span>/50</div>
+    </header>
+
+    <div class="control-grid" id="main-grid">
+        <!-- Gerado via JS -->
+    </div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAu1hJH84fhY7GGbmzzdVyEkvYriaiOr_k",
+        authDomain: "jdp-supreme-kernel.firebaseapp.com",
+        databaseURL: "https://jdp-supreme-kernel-default-rtdb.firebaseio.com",
+        projectId: "jdp-supreme-kernel",
+        storageBucket: "jdp-supreme-kernel.firebasestorage.app",
+        messagingSenderId: "709947760059",
+        appId: "1:709947760059:web:1779bedd06e3957b34789e"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // FUNÇÃO DE DESBLOQUEIO
+    function unlockMaster() {
+        const pass = prompt("SENHA DO PROPRIETÁRIO:");
+        if(pass === "1234") { // Senha padrão do Sr. José
+            document.getElementById('master-lock').style.display = 'none';
+            initDashboard();
+        } else {
+            alert("ACESSO NEGADO. LOG REGISTRADO.");
+        }
+    }
+
+    function initDashboard() {
+        const grid = document.getElementById('main-grid');
+        
+        for(let i = 1; i <= 50; i++) {
+            const card = document.createElement('div');
+            card.className = 'screen-card';
+            card.innerHTML = `
+                <div class="screen-id">
+                    TELA (${i})
+                    <span id="dot-${i}" class="status-dot"></span>
+                </div>
+                <label>Endereço da Mídia (URL)</label>
+                <input type="text" id="url-${i}" placeholder="https://...">
+                
+                <label>Playlist Publicidade (Links)</label>
+                <textarea id="play-${i}" rows="3" placeholder="Link 1, Link 2..."></textarea>
+                
+                <button onclick="updateScreen(${i})">Sincronizar Tela ${i}</button>
+            `;
+            grid.appendChild(card);
+            
+            // Escutar dados em tempo real
+            db.ref('screens/' + i).on('value', (snap) => {
+                const data = snap.val();
+                if(data) {
+                    if(data.currentMedia) document.getElementById(`url-${i}`).value = data.currentMedia;
+                    if(data.playlist) document.getElementById(`play-${i}`).value = data.playlist;
+                    
+                    // Checar se está online (visto nos últimos 30 segundos)
+                    const isOnline = data.lastSeen && (Date.now() - data.lastSeen < 30000);
+                    const dot = document.getElementById(`dot-${i}`);
+                    if(isOnline) dot.classList.add('status-online');
+                    else dot.classList.remove('status-online');
+                }
+            });
+        }
+    }
+
+    function updateScreen(id) {
+        const url = document.getElementById(`url-${id}`).value;
+        const playlist = document.getElementById(`play-${id}`).value;
+        
+        db.ref('screens/' + id).update({
+            currentMedia: url,
+            playlist: playlist,
+            lastUpdate: Date.now()
+        }).then(() => {
+            alert("TELA " + id + " ATUALIZADA COM SUCESSO.");
+        });
+    }
+
+    // Monitorar contagem global
+    setInterval(() => {
+        let online = document.querySelectorAll('.status-online').length;
+        document.getElementById('active-count').innerText = online;
+    }, 5000);
+
+</script>
+</body>
+</html>
