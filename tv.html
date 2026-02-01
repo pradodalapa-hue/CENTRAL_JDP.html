@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JDP MONITOR</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
+        iframe, video { width: 100vw; height: 100vh; border: none; display: none; object-fit: cover; }
+        .loading { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            background: #000; color: #00f2ff; font-family: 'Courier New', monospace;
+        }
+        .spinner { width: 40px; height: 40px; border: 3px solid #1a1a1a; border-top: 3px solid #00f2ff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="boot" class="loading">
+        <div class="spinner"></div>
+        <div id="statusText">SISTEMA JDP INICIALIZANDO...</div>
+    </div>
+
+    <video id="videoPlayer" autoplay loop muted playsinline></video>
+    <iframe id="webPlayer" src=""></iframe>
+
+<script>
+    // CONFIGURAÇÃO DO SR. JOSÉ
+    const firebaseConfig = {
+        apiKey: "AIzaSyAu1hJH84fhY7GGbmzzdVyEkvYriaiOr_k",
+        authDomain: "jdp-supreme-kernel.firebaseapp.com",
+        databaseURL: "https://jdp-supreme-kernel-default-rtdb.firebaseio.com",
+        projectId: "jdp-supreme-kernel",
+        storageBucket: "jdp-supreme-kernel.firebasestorage.app",
+        messagingSenderId: "709947760059",
+        appId: "1:709947760059:web:1779bedd06e3957b34789e"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // --- AJUSTE AQUI O NÚMERO DA TELA ---
+    const MINHA_TELA = "1"; // Mude para "2" no index2.html, "3" no index3.html...
+    // ------------------------------------
+
+    document.getElementById('statusText').innerText = "CONECTADO À TELA " + MINHA_TELA;
+
+    database.ref('telas/tela_' + MINHA_TELA).on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data && data.url) {
+            const url = data.url;
+            const video = document.getElementById('videoPlayer');
+            const web = document.getElementById('webPlayer');
+            const boot = document.getElementById('boot');
+
+            boot.style.display = 'none';
+            
+            const isVideo = url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.webm');
+
+            if (isVideo) {
+                web.style.display = 'none';
+                web.src = '';
+                video.style.display = 'block';
+                video.src = url;
+                video.play();
+            } else {
+                video.style.display = 'none';
+                video.pause();
+                web.style.display = 'block';
+                web.src = url;
+            }
+        }
+    });
+</script>
+</body>
+</html>

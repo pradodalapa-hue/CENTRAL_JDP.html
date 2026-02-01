@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JDP SUPREME - CENTRAL</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <style>
+        :root { --neon: #00f2ff; --bg: #050505; }
+        body { background: var(--bg); color: var(--neon); font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .panel { background: #0f0f0f; padding: 30px; border: 1px solid #1a1a1a; border-top: 4px solid var(--neon); width: 90%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); border-radius: 8px; }
+        h2 { font-weight: 300; letter-spacing: 3px; text-align: center; margin-bottom: 25px; color: #fff; }
+        label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; display: block; color: var(--neon); }
+        select, input { width: 100%; padding: 15px; margin-bottom: 20px; background: #000; border: 1px solid #333; color: #fff; outline: none; box-sizing: border-box; border-radius: 4px; font-size: 16px; }
+        select:focus, input:focus { border-color: var(--neon); }
+        button { width: 100%; padding: 18px; background: var(--neon); border: none; color: #000; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; border-radius: 4px; transition: 0.3s; font-size: 14px; }
+        button:hover { background: #fff; transform: scale(1.02); }
+        .footer { font-size: 9px; text-align: center; margin-top: 20px; color: #444; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+
+<div class="panel">
+    <h2>JDP INDUSTRIAL</h2>
+    
+    <label>Selecione a Tela Alvo:</label>
+    <select id="telaID">
+        <option value="1">TELA 01</option>
+        <option value="2">TELA 02</option>
+        <option value="3">TELA 03</option>
+        <option value="4">TELA 04</option>
+        <option value="5">TELA 05</option>
+    </select>
+
+    <label>Link do Vídeo ou Site:</label>
+    <input type="text" id="urlInput" placeholder="Cole a URL aqui..." autocomplete="off">
+    
+    <button onclick="enviarComando()">EXECUTAR COMANDO</button>
+    
+    <div class="footer">HELENA V13.5 | SUPREME KERNEL</div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAu1hJH84fhY7GGbmzzdVyEkvYriaiOr_k",
+        authDomain: "jdp-supreme-kernel.firebaseapp.com",
+        databaseURL: "https://jdp-supreme-kernel-default-rtdb.firebaseio.com",
+        projectId: "jdp-supreme-kernel",
+        storageBucket: "jdp-supreme-kernel.firebasestorage.app",
+        messagingSenderId: "709947760059",
+        appId: "1:709947760059:web:1779bedd06e3957b34789e"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    function enviarComando() {
+        const id = document.getElementById('telaID').value;
+        const url = document.getElementById('urlInput').value;
+        
+        if(!url) return alert("Sr. José, por favor insira uma URL.");
+
+        database.ref('telas/tela_' + id).set({
+            url: url,
+            timestamp: Date.now()
+        }).then(() => {
+            alert("COMANDO ENVIADO PARA TELA " + id);
+            document.getElementById('urlInput').value = "";
+        });
+    }
+</script>
+</body>
+</html>
